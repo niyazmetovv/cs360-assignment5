@@ -63,5 +63,13 @@ describe("TranscriptStore", () => {
       () => store.addGrade(studentID, "CS360", 90),
       /Grade already exists for course CS360/,
     );
+  test("BUG-101: deleting a student removes their stored grades", () => {
+    const studentID = store.addStudent("Ada");
+    store.addGrade(studentID, "CS360", 95);
+
+    assert.equal(store.getGrade(studentID, "CS360"), 95);
+    store.deleteStudent(studentID);
+
+    assert.equal(store.getGrade(studentID, "CS360"), undefined);
   });
 });
