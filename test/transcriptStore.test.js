@@ -55,6 +55,16 @@ describe("TranscriptStore", () => {
     assert.throws(() => store.deleteStudent(secondID), /Student not found/);
   });
 
+  test("BUG-101: deleting a student removes their stored grades", () => {
+    const studentID = store.addStudent("Ada");
+    store.addGrade(studentID, "CS360", 95);
+
+    assert.equal(store.getGrade(studentID, "CS360"), 95);
+    store.deleteStudent(studentID);
+
+    assert.equal(store.getGrade(studentID, "CS360"), undefined);
+  });
+
   test("BUG-102: adding a duplicate grade throws an error", () => {
     const studentID = store.addStudent("Lin");
     store.addGrade(studentID, "CS360", 80);
@@ -65,13 +75,14 @@ describe("TranscriptStore", () => {
     );
   });
 
-  test("BUG-101: deleting a student removes their stored grades", () => {
-    const studentID = store.addStudent("Ada");
-    store.addGrade(studentID, "CS360", 95);
+  test("BUG-103: name search trims surrounding whitespace and ignores case", () => {
+    const studentID = store.addStudent("Grace Lee");
 
-    assert.equal(store.getGrade(studentID, "CS360"), 95);
-    store.deleteStudent(studentID);
+    assert.deepEqual(store.getStudentIDs("grace lee"), [studentID]);
+    assert.deepEqual(store.getStudentIDs("  Grace Lee  "), [studentID]);
+    assert.deepEqual(store.getStudentIDs("  GRACE LEE  "), [studentID]);
 
-    assert.equal(store.getGrade(studentID, "CS360"), undefined);
+    // Ensure stored display name is unchanged
+    assert.equal(store.getTranscript(studentID).student.studentName, "Grace Lee");
   });
 });
